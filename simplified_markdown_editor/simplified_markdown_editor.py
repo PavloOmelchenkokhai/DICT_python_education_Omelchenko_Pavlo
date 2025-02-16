@@ -33,6 +33,23 @@ def apply_format(formatter, text):
         return f"[{label}]({url})"
     elif formatter == "new-line":
         return "\n"
+    elif formatter in ["ordered-list", "unordered-list"]:
+        try:
+            num_rows = int(input("Number of rows: "))
+            if num_rows <= 0:
+                print("The number of rows should be greater than zero.")
+                return None
+
+            items = []
+            for i in range(1, num_rows + 1):
+                item = input(f"Row #{i}: ")
+                prefix = f"{i}. " if formatter == "ordered-list" else "* "
+                items.append(f"{prefix}{item}")
+
+            return "\n".join(items) + "\n"
+        except ValueError:
+            print("Invalid number of rows.")
+            return None
     else:
         return None
 
@@ -55,6 +72,8 @@ def main():
         elif command in formatters:
             if command == "new-line":
                 formatted_text = apply_format(command, "")
+            elif command in ["ordered-list", "unordered-list"]:
+                formatted_text = apply_format(command, "")
             else:
                 text = input("Text: ")
                 formatted_text = apply_format(command, text)
@@ -68,4 +87,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
