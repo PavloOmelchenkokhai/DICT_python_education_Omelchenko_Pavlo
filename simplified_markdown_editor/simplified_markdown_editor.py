@@ -67,6 +67,8 @@ def main():
         if command == "!help":
             print_help()
         elif command == "!done":
+            with open("output.md", "w", encoding="utf-8") as file:
+                file.write(markdown.strip())
             print(markdown)
             break
         elif command in formatters:
