@@ -32,7 +32,7 @@ def apply_format(formatter):
                 print("The level should be within the range of 1 to 6.")
             except ValueError:
                 print("Invalid level input.")
-        return f"{'#' * level} {get_text('')}\n"
+        return f"{'#' * level} {get_text('Text: ')}\n"
     elif formatter == "link":
         label = get_text("Label: ")
         url = get_text("URL: ")
@@ -61,7 +61,7 @@ def get_list(formatter):
         prefix = f"{i}. " if formatter == "ordered-list" else "* "
         items.append(f"{prefix}{item}")
 
-    return "\n" + "\n".join(items) + "\n"
+    return "\n" + "\n".join(items) + "\n\n"
 
 
 def main():
