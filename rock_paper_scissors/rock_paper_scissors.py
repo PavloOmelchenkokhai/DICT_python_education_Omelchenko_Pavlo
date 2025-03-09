@@ -1,7 +1,7 @@
 import random
 
 
-def load_rating(filename):
+def load_ratings(filename="rating.txt"):
     ratings = {}
     try:
         with open(filename, "r") as file:
@@ -13,50 +13,47 @@ def load_rating(filename):
     return ratings
 
 
-def get_game_result(user_choice, computer_choice, winning_moves):
-    if user_choice == computer_choice:
-        return "draw"
-    elif winning_moves[user_choice] == computer_choice:
-        return "win"
-    else:
-        return "lose"
+def determine_winners(options):
+    rules = {}
+    n = len(options)
+    for i, option in enumerate(options):
+        losing = options[i + 1:i + 1 + (n // 2)]
+        winning = options[i - (n // 2):i] if i - (n // 2) >= 0 else options[:i] + options[i + 1:]
+        rules[option] = set(losing)
+    return rules
 
 
 def main():
-    winning_moves = {"rock": "scissors", "paper": "rock", "scissors": "paper"}
-    options = list(winning_moves.keys())
+    ratings = load_ratings()
+    name = input("Enter your name: ")
+    print(f"Hello, {name}")
+    score = ratings.get(name, 0)
 
-    user_name = input("Enter your name: ").strip()
-    print(f"Hello, {user_name}")
+    options_input = input()
+    options = options_input.split(",") if options_input else ["rock", "paper", "scissors"]
+    rules = determine_winners(options)
 
-    ratings = load_rating("rating.txt")
-    score = ratings.get(user_name, 0)
+    print("Okay, let's start.")
 
     while True:
-        user_choice = input().strip().lower()
-
+        user_choice = input()
         if user_choice == "!exit":
             print("Bye!")
             break
-
-        if user_choice == "!rating":
+        elif user_choice == "!rating":
             print(f"Your rating: {score}")
-            continue
-
-        if user_choice in winning_moves:
+        elif user_choice in options:
             computer_choice = random.choice(options)
-            result = get_game_result(user_choice, computer_choice, winning_moves)
-
-            if result == "draw":
-                score += 50
+            if user_choice == computer_choice:
                 print(f"There is a draw ({computer_choice})")
-            elif result == "win":
-                score += 100
+                score += 50
+            elif computer_choice in rules[user_choice]:
                 print(f"Well done. The computer chose {computer_choice} and failed")
+                score += 100
             else:
                 print(f"Sorry, but the computer chose {computer_choice}")
         else:
-            print("Invalid input.")
+            print("Invalid input")
 
 
 if __name__ == "__main__":
