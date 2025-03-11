@@ -15,12 +15,36 @@ def load_ratings(filename="rating.txt"):
 
 
 def determine_winners(options):
-    """Формує правила перемог та програшів для кожного варіанту"""
+    """Формує правила перемог для кожного варіанту"""
     rules = {}
-    n = len(options)
-    for i, option in enumerate(options):
-        losing = options[i + 1:i + 1 + (n // 2)] + options[:max(0, (i + 1 + (n // 2)) - n)]
-        rules[option] = set(losing)
+    for option in options:
+        rules[option] = set()
+
+    if "rock" in options:
+        if "scissors" in options:
+            rules["rock"].add("scissors")
+        if "lizard" in options:
+            rules["rock"].add("lizard")
+    if "paper" in options:
+        if "rock" in options:
+            rules["paper"].add("rock")
+        if "spock" in options:
+            rules["paper"].add("spock")
+    if "scissors" in options:
+        if "paper" in options:
+            rules["scissors"].add("paper")
+        if "lizard" in options:
+            rules["lizard"].add("scissors")
+    if "lizard" in options:
+        if "paper" in options:
+            rules["lizard"].add("paper")
+        if "spock" in options:
+            rules["spock"].add("lizard")
+    if "spock" in options:
+        if "rock" in options:
+            rules["rock"].add("spock")
+        if "scissors" in options:
+            rules["spock"].add("scissors")
     return rules
 
 
@@ -35,8 +59,8 @@ def get_game_options():
     """Отримує варіанти гри від користувача та перевіряє їх коректність"""
     while True:
         options_input = input(
-            "Enter game options (comma-separated) or press Enter for default [rock, paper, scissors]: ")
-        options = options_input.split(",") if options_input else ["rock", "paper", "scissors"]
+            "Enter game options (comma-separated) or press Enter for default [rock, paper, scissors, lizard, spock]: ")
+        options = options_input.split(",") if options_input else ["rock", "paper", "scissors", "lizard", "spock"]
         options = [opt.strip() for opt in options if opt.strip()]
 
         if len(options) < 3:
@@ -64,8 +88,7 @@ def play_game(name, ratings, options, rules):
             if user_choice == computer_choice:
                 print(f"There is a draw ({computer_choice})")
                 score += 50
-            elif (user_choice == "rock" and computer_choice == "scissors") or \
-                 (user_choice != "rock" and computer_choice != "scissors" and computer_choice in rules[user_choice]):
+            elif computer_choice in rules[user_choice]:
                 print(f"Well done. The computer chose {computer_choice} and failed")
                 score += 100
             else:
