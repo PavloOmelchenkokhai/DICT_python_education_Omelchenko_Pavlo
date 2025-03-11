@@ -57,16 +57,16 @@ def get_player_name():
 
 def get_game_options():
     """Отримує варіанти гри від користувача та перевіряє їх коректність"""
-    while True:
-        options_input = input(
-            "Enter game options (comma-separated) or press Enter for default [rock, paper, scissors, lizard, spock]: ")
-        options = options_input.split(",") if options_input else ["rock", "paper", "scissors", "lizard", "spock"]
-        options = [opt.strip() for opt in options if opt.strip()]
+    options_input = input(
+        "Enter game options (comma-separated) or press Enter for default [rock, paper, scissors]: ")
+    options = options_input.split(",") if options_input else ["rock", "paper", "scissors"]
+    options = [opt.strip() for opt in options if opt.strip()]
 
-        if len(options) < 3:
-            print("Error: You need at least 3 different options to play!")
-        else:
-            return options
+    if len(options) < 3:
+        print("Error: You need at least 3 different options to play!")
+        return ["rock", "paper", "scissors"]
+    else:
+        return options
 
 
 def play_game(name, ratings, options, rules):
