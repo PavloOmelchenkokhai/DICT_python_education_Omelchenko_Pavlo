@@ -64,7 +64,8 @@ def play_game(name, ratings, options, rules):
             if user_choice == computer_choice:
                 print(f"There is a draw ({computer_choice})")
                 score += 50
-            elif computer_choice in rules[user_choice]:
+            elif (user_choice == "rock" and computer_choice == "scissors") or \
+                 (user_choice != "rock" and computer_choice != "scissors" and computer_choice in rules[user_choice]):
                 print(f"Well done. The computer chose {computer_choice} and failed")
                 score += 100
             else:
