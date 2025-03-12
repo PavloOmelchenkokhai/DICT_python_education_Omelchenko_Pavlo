@@ -1,109 +1,92 @@
 import random
+import os
+
+rating_file = "rating.txt"
 
 
-def load_ratings(filename="rating.txt"):
-    """Завантаження рейтингу гравців"""
-    ratings = {}
-    try:
-        with open(filename, "r") as file:
-            for line in file:
-                name, score = line.strip().split()
-                ratings[name] = int(score)
-    except FileNotFoundError:
-        pass
-    return ratings
+def load_ratings():
+    """Завантажує рейтинг із файлу"""
+    if not os.path.exists(rating_file):
+        return {}
+
+    with open(rating_file, "r") as file:
+        return {line.split()[0]: int(line.split()[1]) for line in file if len(line.split()) == 2}
 
 
-def determine_winners(options):
-    """Формує правила перемог для кожного варіанту"""
-    rules = {}
-    for option in options:
-        rules[option] = set()
-
-    if "rock" in options:
-        if "scissors" in options:
-            rules["rock"].add("scissors")
-        if "lizard" in options:
-            rules["rock"].add("lizard")
-    if "paper" in options:
-        if "rock" in options:
-            rules["paper"].add("rock")
-        if "spock" in options:
-            rules["paper"].add("spock")
-    if "scissors" in options:
-        if "paper" in options:
-            rules["scissors"].add("paper")
-        if "lizard" in options:
-            rules["lizard"].add("scissors")
-    if "lizard" in options:
-        if "paper" in options:
-            rules["lizard"].add("paper")
-        if "spock" in options:
-            rules["spock"].add("lizard")
-    if "spock" in options:
-        if "rock" in options:
-            rules["rock"].add("spock")
-        if "scissors" in options:
-            rules["spock"].add("scissors")
-    return rules
+def save_ratings(ratings):
+    """Зберігає рейтинг у файл"""
+    with open(rating_file, "w") as file:
+        file.writelines(f"{name} {score}\n" for name, score in ratings.items())
 
 
-def get_player_name():
-    """Запит імені гравця"""
-    name = input("Enter your name: ")
+def get_username():
+    """Отримує ім'я гравця"""
+    name = input("Enter your name: ").strip()
     print(f"Hello, {name}")
     return name
 
 
-def get_game_options():
-    """Отримує варіанти гри від користувача та перевіряє їх коректність"""
-    options_input = input(
-        "Enter game options (comma-separated) or press Enter for default [rock, paper, scissors]: ")
-    options = options_input.split(",") if options_input else ["rock", "paper", "scissors"]
-    options = [opt.strip() for opt in options if opt.strip()]
+def get_options():
+    """Запитує у гравця набір символів для гри"""
+    default = ["rock", "paper", "scissors"]
+    extended = [
+        "rock", "gun", "lightning", "devil", "dragon", "water", "air", "paper",
+        "sponge", "wolf", "tree", "human", "snake", "scissors", "fire"
+    ]
 
-    if len(options) < 3:
-        print("Error: You need at least 3 different options to play!")
-        return ["rock", "paper", "scissors"]
-    else:
-        return options
+    user_input = input("Enter options separated by commas (or press Enter for default Rock, Paper, Scissors): ").strip()
+    return default if not user_input else [opt.strip().lower() for opt in user_input.split(",")]
 
 
-def play_game(name, ratings, options, rules):
-    """Основний цикл гри"""
-    score = ratings.get(name, 0)
-    print("Type !exit to quit or !rating to see your score.")
-    print("Okay, let's start.")
+def generate_rules(options):
+    """Створює список переможців для кожного символу"""
+    rules = {}
+    n = len(options)
 
+    for i, option in enumerate(options):
+        rules[option] = [options[(i - j) % n] for j in range(1, (n // 2) + 1)]
+
+    return rules
+
+
+def determine_result(player, computer, rules):
+    """Визначає результат раунду"""
+    if player == computer:
+        return f"There is a draw ({computer})", 50
+    if computer in rules[player]:
+        return f"Well done. The computer chose {computer} and failed", 100
+    return f"Sorry, but the computer chose {computer}", 0
+
+
+def play_game(username, score, options, rules, ratings):
+    """Основний ігровий цикл"""
     while True:
-        user_choice = input("> ").strip()
+        choice = input("Enter your choice (!rating, !exit, or one of the options): ").strip().lower()
 
-        if user_choice == "!exit":
+        if choice == "!exit":
+            ratings[username] = score
+            save_ratings(ratings)
             print("Bye!")
             break
-        elif user_choice == "!rating":
+
+        if choice == "!rating":
             print(f"Your rating: {score}")
-        elif user_choice in options:
+            continue
+
+        if choice in options:
             computer_choice = random.choice(options)
-            if user_choice == computer_choice:
-                print(f"There is a draw ({computer_choice})")
-                score += 50
-            elif computer_choice in rules[user_choice]:
-                print(f"Well done. The computer chose {computer_choice} and failed")
-                score += 100
-            else:
-                print(f"Sorry, but the computer chose {computer_choice}")
+            message, points = determine_result(choice, computer_choice, rules)
+            print(message)
+            score += points
         else:
-            print("Invalid input")
+            print("Invalid input.")
 
 
-def main():
-    ratings = load_ratings()
-    name = get_player_name()
-    options = get_game_options()
-    rules = determine_winners(options)
-    play_game(name, ratings, options, rules)
+# Запуск гри
+ratings = load_ratings()
+username = get_username()
+score = ratings.get(username, 0)
+options = get_options()
+rules = generate_rules(options)
 
-
-if __name__ == "__main__":
-    main()
+play_game(username, score, options, rules, ratings)
