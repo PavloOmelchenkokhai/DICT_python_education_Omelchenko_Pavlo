@@ -1,4 +1,5 @@
 import math
+import argparse
 
 
 def calculate_diff_payments(principal, periods, interest_rate):
@@ -61,31 +62,49 @@ def calculate_principal(monthly_payment, periods, interest_rate):
 
 
 def main():
-    print("Welcome to Credit Calculator!")
-    loan_type = input("Enter loan type (annuity/diff): ").strip()
+    parser = argparse.ArgumentParser(description="Credit Calculator")
+    parser.add_argument("--type", choices=["annuity", "diff"], help="Type of payment: 'annuity' or 'diff'")
+    parser.add_argument("--principal", type=float, help="Loan principal amount")
+    parser.add_argument("--periods", type=int, help="Number of months")
+    parser.add_argument("--interest", type=float, help="Loan interest rate (without %)")
+    parser.add_argument("--payment", type=float, help="Monthly payment amount (only for annuity)")
 
-    if loan_type not in ["annuity", "diff"]:
-        print("Incorrect loan type")
+    args = parser.parse_args()
+
+    """Перевірка, чи всі параметри правильні"""
+    if args.type not in ["annuity", "diff"]:
+        print("Incorrect parameters")
         return
 
-    principal = float(input("Enter loan principal: "))
-    periods = int(input("Enter number of months: "))
-    interest_rate = float(input("Enter loan interest (without %): "))
+    if args.interest is None or args.interest <= 0:
+        print("Incorrect parameters")
+        return
 
-    if loan_type == "diff":
-        calculate_diff_payments(principal, periods, interest_rate)
-    else:
-        calc_type = input("Calculate (annuity payment / principal / months)? (a/p/m): ").strip()
-        if calc_type == "a":
-            calculate_annuity_payment(principal, periods, interest_rate)
-        elif calc_type == "p":
-            payment = float(input("Enter monthly payment: "))
-            calculate_principal(payment, periods, interest_rate)
-        elif calc_type == "m":
-            payment = float(input("Enter monthly payment: "))
-            calculate_months(principal, payment, interest_rate)
+    if args.type == "diff" and args.payment is not None:
+        print("Incorrect parameters")
+        return
+
+    parameters = [args.principal, args.periods, args.interest, args.payment]
+    if sum(p is not None for p in parameters) < 3:
+        print("Incorrect parameters")
+        return
+
+    """Обчислення залежно від вибору користувача"""
+    if args.type == "diff":
+        if args.principal and args.periods:
+            calculate_diff_payments(args.principal, args.periods, args.interest)
         else:
-            print("Invalid choice")
+            print("Incorrect parameters")
+
+    elif args.type == "annuity":
+        if args.principal and args.periods:
+            calculate_annuity_payment(args.principal, args.periods, args.interest)
+        elif args.payment and args.periods:
+            calculate_principal(args.payment, args.periods, args.interest)
+        elif args.principal and args.payment:
+            calculate_months(args.principal, args.payment, args.interest)
+        else:
+            print("Incorrect parameters")
 
 
 if __name__ == "__main__":
