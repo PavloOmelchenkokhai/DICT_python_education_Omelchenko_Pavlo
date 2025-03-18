@@ -12,7 +12,7 @@ def calculate_diff_payments(principal, periods, interest_rate):
         total_payment += math.ceil(Dm)
         print(f"Month {m}: payment is {math.ceil(Dm)}")
 
-    overpayment = total_payment - principal
+    overpayment = math.ceil(total_payment - principal)
     print(f"Overpayment = {overpayment}")
 
 
@@ -32,7 +32,7 @@ def calculate_months(principal, monthly_payment, interest_rate):
     else:
         print(f"It will take {months} months to repay the loan")
 
-    overpayment = (months * monthly_payment) - principal
+    overpayment = math.ceil((months * monthly_payment) - principal)
     print(f"Overpayment = {overpayment}")
 
 
@@ -44,7 +44,7 @@ def calculate_annuity_payment(principal, periods, interest_rate):
 
     print(f"Your annuity payment = {annuity_payment}")
 
-    overpayment = (annuity_payment * periods) - principal
+    overpayment = math.ceil((annuity_payment * periods) - principal)
     print(f"Overpayment = {overpayment}")
 
 
@@ -53,11 +53,11 @@ def calculate_principal(monthly_payment, periods, interest_rate):
     i = (interest_rate / 100) / 12  # Щомісячна процентна ставка
 
     principal = monthly_payment / ((i * (1 + i) ** periods) / ((1 + i) ** periods - 1))
-    principal = round(principal)
+    principal = math.floor(principal)
 
     print(f"Your loan principal = {principal}")
 
-    overpayment = (monthly_payment * periods) - principal
+    overpayment = math.ceil((monthly_payment * periods) - principal)
     print(f"Overpayment = {overpayment}")
 
 
@@ -77,6 +77,18 @@ def main():
         return
 
     if args.interest is None or args.interest <= 0:
+        print("Incorrect parameters")
+        return
+
+    if args.principal is not None and args.principal <= 0:
+        print("Incorrect parameters")
+        return
+
+    if args.periods is not None and args.periods <= 0:
+        print("Incorrect parameters")
+        return
+
+    if args.payment is not None and args.payment <= 0:
         print("Incorrect parameters")
         return
 
