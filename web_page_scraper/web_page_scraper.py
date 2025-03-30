@@ -1,23 +1,42 @@
 import requests
+from bs4 import BeautifulSoup
+import json
 
-# Отримання URL від користувача
+# Отримуємо URL від користувача
 url = input("Input the URL:\n> ").strip()
 
+# Перевіряємо, чи це сторінка фільму/серіалу IMDb
+if "imdb.com/title/" not in url:
+    print("Invalid movie page!")
+    exit()
+
 try:
-    response = requests.get(url, timeout=5)  # Виконання запиту з таймаутом 5 секунд
+    # Виконуємо HTTP-запит із заголовком для англійської версії сторінки
+    headers = {
+        "Accept-Language": "en-US,en;q=0.5",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+    response = requests.get(url, headers=headers, timeout=5)
 
     if response.status_code != 200:
-        print("Invalid quote resource!")  # Якщо статус-код не 200
+        print("Invalid movie page!")
     else:
-        try:
-            data = response.json()  # Розбір JSON-відповіді
-            quote = data.get("content")  # Отримання цитати
+        # Використовуємо BeautifulSoup для аналізу HTML
+        soup = BeautifulSoup(response.text, 'html.parser')
 
-            if quote:
-                print(quote)  # Вивід цитати
-            else:
-                print("Invalid quote resource!")  # Якщо в JSON немає цитати
-        except ValueError:  # Якщо відповідь не JSON
-            print("Invalid quote resource!")
+        # Отримуємо заголовок фільму
+        title_tag = soup.find("h1")  # IMDb використовує <h1> для назв фільмів
+        title = title_tag.text.strip() if title_tag else None
+
+        # Отримуємо опис фільму
+        description_tag = soup.find("span", {"data-testid": "plot-l"})
+        description = description_tag.text.strip() if description_tag else None
+
+        # Перевіряємо, чи отримані дані коректні
+        if title and description:
+            movie_data = {"title": title, "description": description}
+            print(json.dumps(movie_data, indent=4))
+        else:
+            print("Invalid movie page!")
 except requests.exceptions.RequestException:
-    print("Invalid quote resource!")  # Помилка підключення
+    print("Invalid movie page!")  # Обробка помилок запиту
