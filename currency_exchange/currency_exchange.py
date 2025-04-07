@@ -1,9 +1,9 @@
 import requests
 
-# Крок 1: Отримати базову валюту (валюта, яку користувач має)
+# Отримати базову валюту
 base_currency = input(">").lower()
 
-# Крок 2: Завантажити дані з FloatRates
+# Завантажити дані з FloatRates
 url = f"http://www.floatrates.com/daily/{base_currency}.json"
 response = requests.get(url)
 data = response.json()
@@ -11,12 +11,12 @@ data = response.json()
 # Крок 3: Створити кеш
 cache = {}
 
-# Зберігаємо у кеші курси до USD і EUR (якщо вони є)
+# Зберігаємо у кеші курси до USD і EUR
 for code in ['usd', 'eur']:
     if code in data:
         cache[code] = data[code]['rate']
 
-# Кроки 4–10: Обробка запитів конвертації
+# Обробка запитів конвертації
 while True:
     target_currency = input(">").lower()
     if not target_currency:
