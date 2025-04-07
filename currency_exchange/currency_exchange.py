@@ -1,11 +1,15 @@
-# Зчитування кількості монет
-mycoins = float(input("Please, enter the number of mycoins you have: > "))
+# Зчитування кількості mycoin
+mycoins = float(input("> "))
 
-# Зчитування курсу обміну
-exchange_rate = float(input("Please, enter the exchange rate: > "))
+# Курси валют
+rates = {
+    "ARS": 0.82,      # Аргентинське песо
+    "HNL": 0.17,      # Гондураська лемпіра
+    "AUD": 1.9622,    # Австралійський долар
+    "MAD": 0.208      # Марокканський дирхам
+}
 
-# Обчислення у доларах
-dollars = mycoins * exchange_rate
-
-# Виведення результату
-print(f"The total amount of dollars: {dollars:.2f}")
+# Прорахунок і вивід результатів
+for currency, rate in rates.items():
+    amount = round(mycoins * rate, 2)
+    print(f"I will get {amount} {currency} from the sale of {mycoins} mycoins.")
