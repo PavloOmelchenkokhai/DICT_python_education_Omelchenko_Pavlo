@@ -84,21 +84,28 @@ def make_player_move(player, snake, stock):
         direction = 'right' if move > 0 else 'left'
         apply_piece(piece, direction, snake)
 
+from collections import Counter
+
 def make_computer_move(computer, snake, stock):
-    possible_moves = list(range(-len(computer), len(computer)+1))
-    random.shuffle(possible_moves)
+    input()
+    all_numbers = [n for piece in snake + computer for n in piece]
+    frequency = Counter(all_numbers)
 
-    for move in possible_moves:
-        if move == 0:
-            continue
-        index = abs(move) - 1
-        piece = computer[index]
-        direction = 'right' if move > 0 else 'left'
-        if is_move_legal(piece, direction, snake):
-            piece = computer.pop(index)
-            apply_piece(piece, direction, snake)
-            return
+    scored_pieces = []
+    for idx, piece in enumerate(computer):
+        score = frequency[piece[0]] + frequency[piece[1]]
+        scored_pieces.append((score, idx, piece))
 
+    scored_pieces.sort(reverse=True)
+
+    for _, idx, piece in scored_pieces:
+        for direction in ['left', 'right']:
+            if is_move_legal(piece, direction, snake):
+                apply_piece(piece, direction, snake)
+                del computer[idx]
+                return
+
+    # 5. Якщо немає можливих ходів — тягнемо з резерву
     if stock:
         computer.append(stock.pop())
 
