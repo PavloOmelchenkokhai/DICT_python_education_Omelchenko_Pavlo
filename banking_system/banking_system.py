@@ -2,11 +2,20 @@ import random
 
 accounts = {}
 
+def luhn_checksum(number):
+    digits = [int(d) for d in number]
+    for i in range(0, len(digits), 2):
+        digits[i] *= 2
+        if digits[i] > 9:
+            digits[i] -= 9
+    return (10 - sum(digits) % 10) % 10
+
 def generate_card_number():
     iin = "400000"
     account_identifier = str(random.randint(0, 999999999)).zfill(9)
-    checksum = str(random.randint(0, 9))  # Поки що випадкова цифра (алгоритм Луна – на наступних етапах)
-    return iin + account_identifier + checksum
+    number_15 = iin + account_identifier
+    checksum = luhn_checksum(number_15)
+    return number_15 + str(checksum)
 
 def generate_pin():
     return str(random.randint(0, 9999)).zfill(4)
