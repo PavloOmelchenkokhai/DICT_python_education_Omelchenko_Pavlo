@@ -1,6 +1,18 @@
 import random
+import sqlite3
 
-accounts = {}
+conn = sqlite3.connect('card.s3db')
+cur = conn.cursor()
+
+cur.execute('''
+CREATE TABLE IF NOT EXISTS card (
+    id INTEGER PRIMARY KEY,
+    number TEXT,
+    pin TEXT,
+    balance INTEGER DEFAULT 0
+)
+''')
+conn.commit()
 
 def luhn_checksum(number):
     digits = [int(d) for d in number]
@@ -12,10 +24,10 @@ def luhn_checksum(number):
 
 def generate_card_number():
     iin = "400000"
-    account_identifier = str(random.randint(0, 999999999)).zfill(9)
-    number_15 = iin + account_identifier
-    checksum = luhn_checksum(number_15)
-    return number_15 + str(checksum)
+    acc_id = str(random.randint(0, 999999999)).zfill(9)
+    partial_number = iin + acc_id
+    checksum = luhn_checksum(partial_number)
+    return partial_number + str(checksum)
 
 def generate_pin():
     return str(random.randint(0, 9999)).zfill(4)
@@ -23,9 +35,11 @@ def generate_pin():
 def create_account():
     while True:
         card_number = generate_card_number()
-        if card_number not in accounts:
+        cur.execute("SELECT number FROM card WHERE number = ?", (card_number,))
+        if not cur.fetchone():
             pin = generate_pin()
-            accounts[card_number] = {"pin": pin, "balance": 0}
+            cur.execute("INSERT INTO card (number, pin) VALUES (?, ?)", (card_number, pin))
+            conn.commit()
             print("\nYour card has been created")
             print("Your card number:")
             print(card_number)
@@ -39,7 +53,10 @@ def log_in():
     print("Enter your PIN:")
     pin = input("> ")
 
-    if card_number in accounts and accounts[card_number]["pin"] == pin:
+    cur.execute("SELECT * FROM card WHERE number = ? AND pin = ?", (card_number, pin))
+    account = cur.fetchone()
+
+    if account:
         print("\nYou have successfully logged in!")
         while True:
             print("\n1. Balance")
@@ -47,7 +64,7 @@ def log_in():
             print("0. Exit")
             choice = input("> ")
             if choice == "1":
-                print(f"\nBalance: {accounts[card_number]['balance']}")
+                print(f"\nBalance: {account[3]}")
             elif choice == "2":
                 print("\nYou have successfully logged out!")
                 break
