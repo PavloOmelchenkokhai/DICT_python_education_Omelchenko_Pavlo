@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS card (
 ''')
 conn.commit()
 
+
 def luhn_checksum(number):
     digits = [int(d) for d in number]
     for i in range(0, len(digits), 2):
@@ -22,9 +23,11 @@ def luhn_checksum(number):
             digits[i] -= 9
     return (10 - sum(digits) % 10) % 10
 
+
 def check_luhn(card_number):
     check_digit = int(card_number[-1])
     return luhn_checksum(card_number[:-1]) == check_digit
+
 
 def generate_card_number():
     iin = "400000"
@@ -33,8 +36,10 @@ def generate_card_number():
     checksum = luhn_checksum(partial_number)
     return partial_number + str(checksum)
 
+
 def generate_pin():
     return str(random.randint(0, 9999)).zfill(4)
+
 
 def create_account():
     while True:
@@ -51,6 +56,7 @@ def create_account():
             print(pin)
             break
 
+
 def account_menu(card_number):
     while True:
         print("\n1. Balance")
@@ -63,14 +69,20 @@ def account_menu(card_number):
 
         if choice == "1":
             cur.execute("SELECT balance FROM card WHERE number = ?", (card_number,))
-            balance = cur.fetchone()[0]
-            print(f"\nBalance: {balance}")
+            result = cur.fetchone()
+            if result:
+                print(f"\nBalance: {result[0]}")
+            else:
+                print("\nError fetching balance.")
         elif choice == "2":
             print("\nEnter income:")
-            income = int(input("> "))
-            cur.execute("UPDATE card SET balance = balance + ? WHERE number = ?", (income, card_number))
-            conn.commit()
-            print("Income was added!")
+            try:
+                income = int(input("> "))
+                cur.execute("UPDATE card SET balance = balance + ? WHERE number = ?", (income, card_number))
+                conn.commit()
+                print("Income was added!")
+            except ValueError:
+                print("Invalid input. Income must be a number.")
         elif choice == "3":
             print("\nTransfer")
             print("Enter card number:")
@@ -86,16 +98,19 @@ def account_menu(card_number):
                     print("Such a card does not exist.")
                 else:
                     print("Enter how much money you want to transfer:")
-                    amount = int(input("> "))
-                    cur.execute("SELECT balance FROM card WHERE number = ?", (card_number,))
-                    current_balance = cur.fetchone()[0]
-                    if current_balance < amount:
-                        print("Not enough money!")
-                    else:
-                        cur.execute("UPDATE card SET balance = balance - ? WHERE number = ?", (amount, card_number))
-                        cur.execute("UPDATE card SET balance = balance + ? WHERE number = ?", (amount, target_card))
-                        conn.commit()
-                        print("Success!")
+                    try:
+                        amount = int(input("> "))
+                        cur.execute("SELECT balance FROM card WHERE number = ?", (card_number,))
+                        current_balance = cur.fetchone()[0]
+                        if current_balance < amount:
+                            print("Not enough money!")
+                        else:
+                            cur.execute("UPDATE card SET balance = balance - ? WHERE number = ?", (amount, card_number))
+                            cur.execute("UPDATE card SET balance = balance + ? WHERE number = ?", (amount, target_card))
+                            conn.commit()
+                            print("Success!")
+                    except ValueError:
+                        print("Invalid input. Please enter a number.")
         elif choice == "4":
             cur.execute("DELETE FROM card WHERE number = ?", (card_number,))
             conn.commit()
@@ -108,20 +123,24 @@ def account_menu(card_number):
             print("\nBye!")
             exit()
 
+
 def log_in():
     print("\nEnter your card number:")
     card_number = input("> ")
     print("Enter your PIN:")
     pin = input("> ")
 
-    cur.execute("SELECT * FROM card WHERE number = ? AND pin = ?", (card_number, pin))
+    cur.execute("SELECT * FROM card WHERE number = ?", (card_number,))
     account = cur.fetchone()
 
-    if account:
+    if not account:
+        print("\nWrong card number!")
+    elif account[2] != pin:
+        print("\nWrong PIN!")
+    else:
         print("\nYou have successfully logged in!")
         account_menu(card_number)
-    else:
-        print("\nWrong card number or PIN!")
+
 
 def main():
     while True:
@@ -138,6 +157,7 @@ def main():
             break
         else:
             print("\nInvalid option.")
+
 
 if __name__ == "__main__":
     main()
