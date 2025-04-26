@@ -145,6 +145,26 @@ def log_command():
         with open(LOG_FILE, 'r') as f:
             print(f.read().strip())
 
+def checkout(args):
+    if len(args) == 0:
+        print("Commit id was not passed.")
+        return
+    commit_id = args[0]
+    commit_path = os.path.join(COMMITS_DIR, commit_id)
+    if not os.path.exists(commit_path):
+        print("Commit does not exist.")
+        return
+
+    with open(INDEX_FILE, 'r') as f:
+        tracked_files = f.read().splitlines()
+
+    for file in tracked_files:
+        src_file = os.path.join(commit_path, file)
+        if os.path.exists(src_file):
+            shutil.copy(src_file, file)
+
+    print(f"Switched to commit {commit_id}.")
+
 def main():
     setup_directories()
 
@@ -162,6 +182,8 @@ def main():
                 commit(args)
             elif command == "log":
                 log_command()
+            elif command == "checkout":
+                checkout(args)
             else:
                 print(commands[command])
         else:
